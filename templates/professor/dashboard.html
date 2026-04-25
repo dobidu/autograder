@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Painel — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-xl font-bold text-gray-900">Painel do Professor</h1>
+        <p class="text-sm text-gray-500 mt-1">Bem-vindo, {{ user.name }}</p>
+    </div>
+    <a href="/admin/assignments/new"
+       class="bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+        + Novo Trabalho
+    </a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5">
+        <div class="text-2xl font-bold text-gray-900">{{ assignments|length }}</div>
+        <div class="text-sm text-gray-500 mt-0.5">Trabalhos criados</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5">
+        <div class="text-2xl font-bold text-amber-600">{{ pending_count }}</div>
+        <div class="text-sm text-gray-500 mt-0.5">Submissões pendentes</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5">
+        <div class="text-2xl font-bold text-indigo-600">{{ total_students }}</div>
+        <div class="text-sm text-gray-500 mt-0.5">Alunos ativos</div>
+    </div>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-semibold text-gray-900">Trabalhos</h2>
+    </div>
+    {% if not assignments %}
+    <div class="p-8 text-center text-gray-500">
+        Nenhum trabalho criado. Clique em "+ Novo Trabalho" para começar.
+    </div>
+    {% else %}
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prazo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for a in assignments %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-3 text-sm font-medium text-gray-900">{{ a.title }}</td>
+                    <td class="px-6 py-3 text-sm text-gray-500">{{ a.module or '—' }}</td>
+                    <td class="px-6 py-3 text-sm text-gray-500">{{ a.deadline.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="px-6 py-3 text-sm">
+                        {% if a.status == 'draft' %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Rascunho</span>
+                        {% elif a.status == 'published' %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">Publicado</span>
+                        {% elif a.status == 'closed' %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">Fechado</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3 text-sm space-x-3">
+                        <a href="/admin/assignments/{{ a.id }}" class="font-medium text-indigo-600 hover:text-indigo-500 transition">Ver</a>
+                        <a href="/admin/assignments/{{ a.id }}/edit" class="font-medium text-gray-500 hover:text-gray-700 transition">Editar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

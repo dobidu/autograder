@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Submissão #{{ submission.id }} — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/assignments/{{ assignment.id }}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500 transition">&larr; {{ assignment.title }}</a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6"
+     {% if submission.status in ['pending', 'compiling', 'testing', 'grading'] %}
+     hx-get="/submissions/{{ submission.id }}"
+     hx-trigger="every 3s"
+     hx-select="#submission-content"
+     hx-target="#submission-content"
+     hx-swap="outerHTML transition:true"
+     {% endif %}>
+
+    <div id="submission-content">
+        <div class="flex items-center justify-between mb-4">
+            <h1 class="text-xl font-bold text-gray-900">Submissão v{{ submission.version }}</h1>
+            {% with status=submission.status %}{% include "partials/status_indicator.html" %}{% endwith %}
+        </div>
+
+        <p class="text-sm text-gray-500 mb-6">
+            Enviado em {{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}
+            &middot; Fonte: {{ submission.source }}
+            {% if submission.github_url %}&middot; <a href="{{ submission.github_url }}" target="_blank" rel="noopener" class="text-indigo-600 hover:text-indigo-500 transition">Repositório</a>{% endif %}
+        </p>
+
+        {% if submission.status in ['pending', 'compiling', 'testing', 'grading'] %}
+        {# Progress steps #}
+        <nav aria-label="Progresso da correção" class="mb-6">
+            {% set steps = ['pending', 'compiling', 'testing', 'grading'] %}
+            {% set labels = {'pending': 'Fila', 'compiling': 'Compilar', 'testing': 'Testar', 'grading': 'Nota'} %}
+            {% set current = steps.index(submission.status) if submission.status in steps else 0 %}
+            <div class="flex items-center gap-2" role="progressbar" aria-valuenow="{{ current + 1 }}" aria-valuemin="1" aria-valuemax="4" aria-label="Etapa {{ current + 1 }} de 4: {{ labels[submission.status] }}">
+                {% for step in steps %}
+                <div class="flex-1">
+                    <div class="h-2 rounded-full transition-all duration-500 {% if loop.index0 < current %}bg-indigo-600{% elif loop.index0 == current %}bg-indigo-400 animate-pulse{% else %}bg-gray-200{% endif %}"></div>
+                    <p class="text-xs text-center mt-1.5 {% if loop.index0 == current %}text-indigo-600 font-medium{% elif loop.index0 < current %}text-indigo-400{% else %}text-gray-400{% endif %}">
+                        {{ labels[step] }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+        </nav>
+        {% endif %}
+
+        {% if grade %}
+        {# Score hero #}
+        {% if grade.is_published and grade.score_final is not none %}
+        <div class="mb-6 p-5 rounded-xl {% if grade.score_final >= assignment.max_score * 0.6 %}bg-green-50 border border-green-200{% else %}bg-red-50 border border-red-200{% endif %}" aria-label="Nota final: {{ '%.1f'|format(grade.score_final) }} de {{ assignment.max_score }}">
+            <div class="text-3xl font-bold {% if grade.score_final >= assignment.max_score * 0.6 %}text-green-700{% else %}text-red-700{% endif %}">
+                {{ "%.1f"|format(grade.score_final) }} <span class="text-lg font-normal text-gray-500">/ {{ assignment.max_score }}</span>
+            </div>
+        </div>
+        {% elif grade.score_auto is not none %}
+        <div class="mb-6 p-4 rounded-xl bg-purple-50 border border-purple-200">
+            <p class="text-sm text-purple-700">Nota automática calculada. Aguardando revisão do professor.</p>
+        </div>
+        {% endif %}
+
+        {# Compilation #}
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Compilação</h3>
+            {% if grade.compile_ok %}
+            <p class="text-sm text-green-700">Compilou com sucesso</p>
+            {% elif grade.compile_ok is not none %}
+            <p class="text-sm text-red-700 mb-1">Falha na compilação</p>
+            {% if grade.compile_output %}
+            <pre class="expandable bg-slate-900 text-slate-200 text-xs p-4 rounded-xl overflow-x-auto max-h-64 leading-relaxed">{{ grade.compile_output }}</pre>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        {# Test results #}
+        {% if grade.test_results %}
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Testes funcionais</h3>
+            <div class="space-y-1.5">
+                {% for t in grade.test_results|from_json if grade.test_results %}
+                <div class="flex items-center justify-between text-sm px-3 py-2 rounded-lg transition-colors {% if t.passed %}bg-green-50{% else %}bg-red-50{% endif %}">
+                    <span>{{ t.name }}</span>
+                    <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+                        {% if t.time_ms %}<span class="text-gray-400 text-xs">{{ t.time_ms }}ms</span>{% endif %}
+                        {% if t.passed %}
+                        <span class="text-green-700 font-medium" aria-label="Teste aprovado">OK</span>
+                        {% else %}
+                        <span class="text-red-700 font-medium" aria-label="Teste reprovado">FALHOU</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Stress results #}
+        {% if grade.stress_results %}
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Stress test</h3>
+            {% set stress = grade.stress_results|from_json if grade.stress_results else {} %}
+            <p class="text-sm {% if stress.get('failed', 0) == 0 %}text-green-700{% else %}text-red-700{% endif %}">
+                {{ stress.get('passed', 0) }}/{{ stress.get('runs', 0) }} execuções consistentes
+            </p>
+        </div>
+        {% endif %}
+
+        {# Helgrind #}
+        {% if grade.helgrind_ok is not none %}
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Helgrind (data races)</h3>
+            {% if grade.helgrind_ok %}
+            <p class="text-sm text-green-700">Nenhum erro de concorrência detectado</p>
+            {% else %}
+            <p class="text-sm text-red-700 mb-1">Erros de concorrência detectados</p>
+            {% if grade.helgrind_output and grade.is_published %}
+            <pre class="expandable bg-slate-900 text-slate-200 text-xs p-4 rounded-xl overflow-x-auto max-h-64 leading-relaxed">{{ grade.helgrind_output[:2000] }}</pre>
+            {% endif %}
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {# LLM Feedback #}
+        {% if grade.is_published and grade.llm_feedback %}
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Feedback da LLM</h3>
+            <div class="prose prose-sm max-w-none bg-gray-50 p-4 rounded-xl">
+                {{ grade.llm_feedback|markdown|safe }}
+            </div>
+        </div>
+        {% endif %}
+
+        {# Professor notes #}
+        {% if grade.is_published and grade.professor_notes %}
+        <div class="mb-5">
+            <h3 class="text-sm font-semibold text-gray-700 mb-2">Comentários do professor</h3>
+            <div class="bg-indigo-50 p-4 rounded-xl text-sm text-indigo-900">
+                {{ grade.professor_notes }}
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

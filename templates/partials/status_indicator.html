@@ -1,0 +1,22 @@
+{# Status badge — standardized sizes, accessible labels, live region #}
+{% if status == 'pending' %}
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 transition-colors" role="status" aria-live="polite">
+    <span class="w-1.5 h-1.5 rounded-full bg-amber-400" aria-hidden="true"></span>
+    Pendente
+</span>
+{% elif status in ['compiling', 'testing', 'grading'] %}
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 transition-colors" role="status" aria-live="polite">
+    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" aria-hidden="true"></span>
+    {% if status == 'compiling' %}Compilando{% elif status == 'testing' %}Testando{% else %}Calculando{% endif %}
+</span>
+{% elif status == 'done' %}
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 transition-colors" role="status">
+    <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+    Concluído
+</span>
+{% elif status == 'error' %}
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 transition-colors" role="status">
+    <span class="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true"></span>
+    Erro
+</span>
+{% endif %}

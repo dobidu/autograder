@@ -1,0 +1,53 @@
+{
+  "title": "Corrigir Race Condition",
+  "module": 2,
+  "max_score": 10.0,
+  "deadline": "2026-06-05T13:59:00-03:00",
+  "description_file": "enunciado.md",
+  "compile": {
+    "flags": "-Wall -Wextra -pthread -g",
+    "entry_point": "counter.c",
+    "expected_files": ["counter.c"],
+    "binary_name": "counter"
+  },
+  "grading": {
+    "compile_weight": 1.0,
+    "tests_weight": 4.0,
+    "stress_weight": 2.5,
+    "helgrind_weight": 1.5,
+    "llm_weight": 1.0,
+    "tests": [
+      {
+        "name": "Resultado correto (2000000)",
+        "args": [],
+        "timeout_sec": 10,
+        "expected_output_contains": "2000000",
+        "points": 4.0
+      }
+    ],
+    "stress": {
+      "enabled": true,
+      "runs": 50,
+      "args": [],
+      "expected_output_contains": "2000000",
+      "timeout_sec": 10
+    },
+    "helgrind": {
+      "enabled": true,
+      "args": [],
+      "timeout_sec": 60,
+      "max_errors": 0
+    }
+  },
+  "llm": {
+    "enabled": true,
+    "rubric": "Avalie: (1) uso correto de mutex para proteger a seção crítica, (2) inicialização e destruição do mutex, (3) ausência de deadlocks, (4) clareza do código. Nota de 0 a 10.",
+    "context": "O aluno recebeu um programa com race condition (dois threads incrementando um contador) e deve corrigi-lo usando pthread_mutex."
+  },
+  "submission": {
+    "max_submissions": -1,
+    "scoring_mode": "last",
+    "github_enabled": true,
+    "github_branch": "main"
+  }
+}

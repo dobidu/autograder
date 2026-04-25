@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{% if student %}Editar Aluno{% else %}Novo Aluno{% endif %} — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin/students" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500 transition">&larr; Voltar aos alunos</a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 max-w-lg">
+    <h1 class="text-xl font-bold text-gray-900 mb-6">{% if student %}Editar Aluno{% else %}Novo Aluno{% endif %}</h1>
+
+    {% if error %}
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post"
+          action="{% if student %}/admin/students/{{ student.id }}/edit{% else %}/admin/students/new{% endif %}"
+          class="space-y-4">
+
+        <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Nome completo</label>
+            <input type="text" name="name" id="name" required
+                   value="{{ student.name if student else (form_name if form_name is defined else '') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" name="email" id="email" required
+                   value="{{ student.email if student else (form_email if form_email is defined else '') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+
+        <div>
+            <label for="matricula" class="block text-sm font-medium text-gray-700">Matrícula <span class="text-gray-400 font-normal">(opcional)</span></label>
+            <input type="text" name="matricula" id="matricula"
+                   value="{{ student.matricula or '' if student else (form_matricula if form_matricula is defined else '') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">
+                {% if student %}Nova senha <span class="text-gray-400 font-normal">(deixe em branco para manter a atual)</span>
+                {% else %}Senha{% endif %}
+            </label>
+            <input type="password" name="password" id="password" {% if not student %}required{% endif %} minlength="6"
+                   autocomplete="new-password"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+            <p class="text-xs text-gray-400 mt-1">Mínimo 6 caracteres.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <input type="checkbox" name="is_active" id="is_active" value="true"
+                   {% if not student or student.is_active %}checked{% endif %}
+                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            <label for="is_active" class="text-sm text-gray-700">Conta ativa</label>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2">
+            <a href="/admin/students" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition">Cancelar</a>
+            <button type="submit"
+                    class="bg-indigo-600 text-white py-2 px-6 rounded-lg text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-800 transition">
+                {% if student %}Salvar{% else %}Cadastrar{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

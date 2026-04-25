@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LPII AutoGrader{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'] },
+            }
+        }
+    }
+    </script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        .prose pre { background: rgb(15 23 42); color: rgb(226 232 240); padding: 1rem; border-radius: 0.75rem; overflow-x: auto; font-size: 0.8125rem; line-height: 1.625; }
+        .prose code { background: rgb(241 245 249); padding: 0.125rem 0.375rem; border-radius: 0.375rem; font-size: 0.8125em; }
+        .prose pre code { background: transparent; padding: 0; }
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-flex; }
+        .htmx-request.htmx-indicator { display: inline-flex; }
+        .htmx-swapping { opacity: 0.5; transition: opacity 200ms ease-in; }
+        .htmx-settling { opacity: 1; transition: opacity 200ms ease-out; }
+        /* Expandable code blocks */
+        .code-collapsed { max-height: 16rem; overflow: hidden; position: relative; }
+        .code-collapsed::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3rem; background: linear-gradient(transparent, rgb(15 23 42)); pointer-events: none; }
+        /* Respect reduced motion preference */
+        @media (prefers-reduced-motion: reduce) {
+            .animate-pulse, .animate-spin { animation: none !important; }
+            .htmx-swapping, .htmx-settling { transition: none !important; }
+            .transition, .transition-all, .transition-colors { transition: none !important; }
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50 antialiased">
+    {% if user %}
+    <nav class="bg-white border-b border-gray-200" role="navigation" aria-label="Navegação principal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-14">
+                <div class="flex items-center gap-1">
+                    <a href="/dashboard" class="text-lg font-bold text-indigo-600 mr-4">LPII AutoGrader</a>
+                    {% if user.role == 'student' %}
+                    {% set nav_items = [('/dashboard', 'Trabalhos'), ('/grades', 'Notas')] %}
+                    {% elif user.role == 'professor' %}
+                    {% set nav_items = [('/admin/dashboard', 'Painel'), ('/admin/students', 'Alunos'), ('/admin/grades', 'Notas'), ('/admin/settings', 'Config')] %}
+                    {% else %}
+                    {% set nav_items = [] %}
+                    {% endif %}
+                    {% for href, label in nav_items %}
+                    <a href="{{ href }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {% if current_path is defined and current_path.startswith(href) and (href != '/' or current_path == '/') %}bg-gray-100 text-gray-900{% else %}text-gray-600 hover:text-gray-900 hover:bg-gray-100{% endif %}">{{ label }}</a>
+                    {% endfor %}
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-600">{{ user.name }}</span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium {% if user.role == 'professor' %}bg-purple-50 text-purple-700{% else %}bg-indigo-50 text-indigo-700{% endif %}">
+                        {{ user.role }}
+                    </span>
+                    <a href="/logout" class="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition">Sair</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {# Flash messages #}
+        {% if flash_message is defined and flash_message %}
+        <div id="flash-banner" class="mb-6 p-3 rounded-lg text-sm flex items-center justify-between
+            {% if flash_category == 'success' %}bg-green-50 border border-green-200 text-green-700
+            {% elif flash_category == 'error' %}bg-red-50 border border-red-200 text-red-700
+            {% elif flash_category == 'warning' %}bg-amber-50 border border-amber-200 text-amber-700
+            {% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %}" role="status">
+            <span>{{ flash_message }}</span>
+            <button onclick="this.parentElement.remove()" class="ml-4 opacity-60 hover:opacity-100 transition" aria-label="Fechar">&times;</button>
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+    // Double-submit protection: disable button on POST form submit (skip GET search forms)
+    document.addEventListener('submit', function(e) {
+        var form = e.target;
+        if (form.method && form.method.toLowerCase() === 'get') return;
+        var btn = form.querySelector('button[type="submit"]:not([formnovalidate])');
+        if (btn && !btn.disabled) {
+            btn.disabled = true;
+            btn.dataset.originalText = btn.innerHTML;
+            var label = btn.textContent.trim();
+            btn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>' + label + '...';
+            setTimeout(function() { btn.disabled = false; btn.innerHTML = btn.dataset.originalText; }, 10000);
+        }
+    });
+    // Auto-dismiss flash after 5s
+    var flash = document.getElementById('flash-banner');
+    if (flash) { setTimeout(function() { flash.style.transition = 'opacity 300ms'; flash.style.opacity = '0'; setTimeout(function() { flash.remove(); }, 300); }, 5000); }
+    // Expandable code blocks
+    document.querySelectorAll('pre.expandable').forEach(function(pre) {
+        if (pre.scrollHeight > 256) {
+            pre.classList.add('code-collapsed');
+            var btn = document.createElement('button');
+            btn.className = 'text-xs text-indigo-400 hover:text-indigo-300 mt-2 block';
+            btn.textContent = 'Mostrar tudo';
+            btn.onclick = function() { pre.classList.remove('code-collapsed'); btn.remove(); };
+            pre.parentElement.insertBefore(btn, pre.nextSibling);
+        }
+    });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Configurações — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900">Configurações</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {# LLM #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">LLM (Ollama)</h2>
+        <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Status</dt>
+                <dd>
+                    {% if llm_available %}
+                    <span class="inline-flex items-center gap-1.5 text-green-700 font-medium">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>Disponível
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center gap-1.5 text-red-700 font-medium">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-500" aria-hidden="true"></span>Indisponível
+                    </span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Habilitada</dt>
+                <dd>{{ "Sim" if llm_enabled else "Não" }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">URL</dt>
+                <dd class="font-mono text-xs text-gray-700">{{ llm_url }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Modelo</dt>
+                <dd class="font-mono text-xs text-gray-700">{{ llm_model }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Timeout</dt>
+                <dd>{{ llm_timeout }}s</dd>
+            </div>
+        </dl>
+        <p class="mt-4 text-xs text-gray-400">
+            Configure via variáveis de ambiente: LLM_ENABLED, LLM_BASE_URL, LLM_MODEL
+        </p>
+    </div>
+
+    {# Sandbox #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Sandbox</h2>
+        <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Modo</dt>
+                <dd class="font-mono text-gray-700">{{ sandbox_mode }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Timeout</dt>
+                <dd>{{ sandbox_timeout }}s</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Memória max.</dt>
+                <dd>{{ sandbox_memory }}MB</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Processos max.</dt>
+                <dd>{{ sandbox_processes }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Rede</dt>
+                <dd>{{ "Sim" if sandbox_network else "Não" }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    {# System #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Sistema</h2>
+        <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <dt class="text-gray-500">gcc</dt>
+                <dd class="font-mono text-xs text-gray-700">{{ gcc_path }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">valgrind</dt>
+                <dd class="font-mono text-xs text-gray-700">{{ valgrind_path }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">GitHub</dt>
+                <dd>{{ "Habilitado" if github_enabled else "Desabilitado" }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Tamanho max. submissão</dt>
+                <dd>{{ max_submission_mb }}MB</dd>
+            </div>
+        </dl>
+    </div>
+
+    {# Worker #}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Worker de Correção</h2>
+        <dl class="space-y-3 text-sm">
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Pendentes na fila</dt>
+                <dd class="font-semibold text-amber-600">{{ pending_count }}</dd>
+            </div>
+            <div class="flex justify-between">
+                <dt class="text-gray-500">Em processamento</dt>
+                <dd class="font-semibold text-blue-600">{{ processing_count }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+{% endblock %}

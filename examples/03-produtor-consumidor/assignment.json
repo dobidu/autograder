@@ -1,0 +1,60 @@
+{
+  "title": "Produtor-Consumidor",
+  "module": 2,
+  "max_score": 10.0,
+  "deadline": "2026-06-19T13:59:00-03:00",
+  "description_file": "enunciado.md",
+  "compile": {
+    "flags": "-Wall -Wextra -pthread -g",
+    "entry_point": "prodcon.c",
+    "expected_files": ["prodcon.c"],
+    "binary_name": "prodcon"
+  },
+  "grading": {
+    "compile_weight": 1.0,
+    "tests_weight": 4.0,
+    "stress_weight": 2.0,
+    "helgrind_weight": 2.0,
+    "llm_weight": 1.0,
+    "tests": [
+      {
+        "name": "1 produtor, 1 consumidor, 10 itens",
+        "args": ["1", "1", "10"],
+        "timeout_sec": 10,
+        "expected_output_contains": "OK",
+        "points": 2.0
+      },
+      {
+        "name": "2 produtores, 2 consumidores, 100 itens",
+        "args": ["2", "2", "100"],
+        "timeout_sec": 15,
+        "expected_output_contains": "OK",
+        "points": 2.0
+      }
+    ],
+    "stress": {
+      "enabled": true,
+      "runs": 30,
+      "args": ["2", "2", "50"],
+      "expected_output_contains": "OK",
+      "timeout_sec": 10
+    },
+    "helgrind": {
+      "enabled": true,
+      "args": ["1", "1", "10"],
+      "timeout_sec": 60,
+      "max_errors": 0
+    }
+  },
+  "llm": {
+    "enabled": true,
+    "rubric": "Avalie: (1) implementação correta do buffer circular, (2) uso de mutex + condvars, (3) ausência de deadlocks e race conditions, (4) terminação limpa de threads, (5) clareza do código. Nota de 0 a 10.",
+    "context": "Implementação do padrão produtor-consumidor com buffer circular, mutex e variáveis de condição POSIX."
+  },
+  "submission": {
+    "max_submissions": -1,
+    "scoring_mode": "last",
+    "github_enabled": true,
+    "github_branch": "main"
+  }
+}

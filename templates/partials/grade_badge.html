@@ -1,0 +1,10 @@
+{# Grade score badge — consistent sizing, accessible contrast #}
+{% if score is not none %}
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold
+    {% if score >= max_score * 0.8 %}bg-green-50 text-green-700
+    {% elif score >= max_score * 0.6 %}bg-amber-50 text-amber-700
+    {% else %}bg-red-50 text-red-700{% endif %}"
+    aria-label="Nota {{ '%.1f'|format(score) }}">
+    {{ "%.1f"|format(score) }}
+</span>
+{% endif %}

@@ -1,0 +1,26 @@
+{# Table row for a submission — HTMX polling stops when status is final #}
+<tr id="sub-{{ submission.id }}" class="hover:bg-gray-50/50 transition-colors"
+    {% if submission.status in ['pending', 'compiling', 'testing', 'grading'] %}
+    hx-get="/api/submissions/{{ submission.id }}/status"
+    hx-trigger="every 5s"
+    hx-target="#sub-{{ submission.id }}"
+    hx-swap="outerHTML"
+    {% endif %}>
+    <td class="px-6 py-3 text-sm text-gray-900">v{{ submission.version }}</td>
+    <td class="px-6 py-3 text-sm text-gray-500">{{ submission.submitted_at.strftime('%d/%m %H:%M') }}</td>
+    <td class="px-6 py-3 text-sm text-gray-500">{{ submission.source }}</td>
+    <td class="px-6 py-3 text-sm">
+        {% with status=submission.status %}
+        {% include "partials/status_indicator.html" %}
+        {% endwith %}
+    </td>
+    <td class="px-6 py-3 text-sm font-medium">
+        {% if submission.grade_result and submission.grade_result.is_published %}
+        {% with score=submission.grade_result.score_final, max_score=10.0 %}
+        {% include "partials/grade_badge.html" %}
+        {% endwith %}
+        {% else %}
+        <span class="text-gray-400">—</span>
+        {% endif %}
+    </td>
+</tr>

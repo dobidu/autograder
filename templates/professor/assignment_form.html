@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% block title %}{% if assignment %}Editar{% else %}Novo{% endif %} Trabalho — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin/dashboard" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500 transition">&larr; Voltar ao painel</a>
+</div>
+
+<form method="post"
+      action="{% if assignment %}/admin/assignments/{{ assignment.id }}/edit{% else %}/admin/assignments/new{% endif %}">
+
+{# === Section 1: Basic info === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-6">{% if assignment %}Editar Trabalho{% else %}Novo Trabalho{% endif %}</h1>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="md:col-span-2">
+            <label for="title" class="block text-sm font-medium text-gray-700">Título</label>
+            <input type="text" name="title" id="title" required value="{{ assignment.title if assignment else '' }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        <div>
+            <label for="module" class="block text-sm font-medium text-gray-700">Módulo</label>
+            <select name="module" id="module" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                <option value="1" {% if assignment and assignment.module == 1 %}selected{% endif %}>1 — Processos</option>
+                <option value="2" {% if assignment and assignment.module == 2 %}selected{% endif %}>2 — Threads</option>
+                <option value="3" {% if assignment and assignment.module == 3 %}selected{% endif %}>3 — Avançado</option>
+            </select>
+        </div>
+        <div>
+            <label for="max_score" class="block text-sm font-medium text-gray-700">Nota máxima</label>
+            <input type="number" name="max_score" id="max_score" step="0.5" value="{{ assignment.max_score if assignment else 10.0 }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        <div>
+            <label for="deadline" class="block text-sm font-medium text-gray-700">Prazo</label>
+            <input type="datetime-local" name="deadline" id="deadline" required
+                   value="{{ assignment.deadline.strftime('%Y-%m-%dT%H:%M') if assignment else '' }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        <div>
+            <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+            <select name="status" id="status" class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                <option value="draft" {% if assignment and assignment.status == 'draft' %}selected{% endif %}>Rascunho</option>
+                <option value="published" {% if assignment and assignment.status == 'published' %}selected{% endif %}>Publicado</option>
+                <option value="closed" {% if assignment and assignment.status == 'closed' %}selected{% endif %}>Fechado</option>
+            </select>
+        </div>
+        <div>
+            <label for="description" class="block text-sm font-medium text-gray-700">Enunciado (Markdown)</label>
+            <textarea name="description" id="description" rows="10" required
+                      class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition leading-relaxed md:col-span-2">{{ assignment.description if assignment else '' }}</textarea>
+        </div>
+        <div class="flex items-center gap-2">
+            <input type="checkbox" name="github_enabled" id="github_enabled" value="true"
+                   {% if assignment and assignment.github_enabled %}checked{% endif %}
+                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+            <label for="github_enabled" class="text-sm text-gray-700">Aceitar submissão via GitHub</label>
+        </div>
+    </div>
+</div>
+
+{# === Section 2: Compilation === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-1">Compilação</h2>
+    <p class="text-xs text-gray-400 mb-4">Configurações de como o código será compilado.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+            <label for="compile_flags" class="block text-sm font-medium text-gray-700">Flags do gcc</label>
+            <input type="text" name="compile_flags" id="compile_flags" value="{{ assignment.compile_flags if assignment else '-Wall -Wextra -pthread' }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+            <p class="text-xs text-gray-400 mt-1">Ex: -Wall -Wextra -pthread -g</p>
+        </div>
+        <div>
+            <label for="expected_files" class="block text-sm font-medium text-gray-700">Arquivos esperados</label>
+            <input type="text" name="expected_files" id="expected_files" placeholder="main.c, Makefile"
+                   value="{{ expected_files_display }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+            <p class="text-xs text-gray-400 mt-1">Separados por vírgula. O sistema verifica se existem no ZIP.</p>
+        </div>
+        <div>
+            <label for="entry_point" class="block text-sm font-medium text-gray-700">Arquivo principal</label>
+            <input type="text" name="entry_point" id="entry_point" value="{{ grading_config.get('compile', {}).get('entry_point', '*.c') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+            <p class="text-xs text-gray-400 mt-1">Arquivo a compilar. Use *.c para compilar todos.</p>
+        </div>
+        <div>
+            <label for="binary_name" class="block text-sm font-medium text-gray-700">Nome do binário</label>
+            <input type="text" name="binary_name" id="binary_name" value="{{ grading_config.get('compile', {}).get('binary_name', 'solution') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+            <p class="text-xs text-gray-400 mt-1">Nome do executável gerado pelo gcc.</p>
+        </div>
+    </div>
+</div>
+
+{# === Section 3: Grading weights === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-1">Pesos da avaliação</h2>
+    <p class="text-xs text-gray-400 mb-4">A nota final é calculada pela média ponderada destes critérios, normalizada para a nota máxima.</p>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {% for field, label, default in [
+            ('compile_weight', 'Compilação', 1.0),
+            ('tests_weight', 'Testes', 6.0),
+            ('stress_weight', 'Stress', 1.5),
+            ('helgrind_weight', 'Helgrind', 1.0),
+            ('llm_weight', 'LLM', 0.5),
+        ] %}
+        <div>
+            <label for="{{ field }}" class="block text-xs font-medium text-gray-700">{{ label }}</label>
+            <input type="number" name="{{ field }}" id="{{ field }}" step="0.5" min="0" max="20"
+                   value="{{ grading_config.get(field, default) }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm text-center focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# === Section 4: Test cases === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-1">Testes funcionais</h2>
+    <p class="text-xs text-gray-400 mb-4">Cada teste executa o binário com os argumentos definidos e verifica a saída.</p>
+
+    <div id="tests-container" class="space-y-3 mb-4">
+        {# Populated by JS from existing data #}
+    </div>
+    <button type="button" id="add-test-btn"
+            class="text-sm font-medium text-indigo-600 hover:text-indigo-500 transition">
+        + Adicionar teste
+    </button>
+    <input type="hidden" name="tests_json" id="tests_json" value="">
+</div>
+
+{# === Section 5: Stress test === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <div class="flex items-center gap-2 mb-4">
+        <input type="checkbox" name="stress_enabled" id="stress_enabled" value="true"
+               {% if grading_config.get('stress', {}).get('enabled') %}checked{% endif %}
+               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+               onchange="document.getElementById('stress-fields').classList.toggle('hidden', !this.checked)">
+        <label for="stress_enabled" class="text-lg font-semibold text-gray-900">Stress test</label>
+        <span class="text-xs text-gray-400">Executa o binário N vezes e verifica consistência</span>
+    </div>
+    <div id="stress-fields" class="grid grid-cols-1 md:grid-cols-2 gap-4 {% if not grading_config.get('stress', {}).get('enabled') %}hidden{% endif %}">
+        {% set stress = grading_config.get('stress', {}) %}
+        <div>
+            <label for="stress_runs" class="block text-sm font-medium text-gray-700">Número de execuções</label>
+            <input type="number" name="stress_runs" id="stress_runs" min="1" max="200" value="{{ stress.get('runs', 20) }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        <div>
+            <label for="stress_timeout" class="block text-sm font-medium text-gray-700">Timeout (s)</label>
+            <input type="number" name="stress_timeout" id="stress_timeout" min="1" value="{{ stress.get('timeout_sec', 30) }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        <div>
+            <label for="stress_args" class="block text-sm font-medium text-gray-700">Argumentos</label>
+            <input type="text" name="stress_args" id="stress_args" value="{{ stress.get('args', [])|join(' ') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                   placeholder="par 100000 4 pipe">
+            <p class="text-xs text-gray-400 mt-1">Separados por espaço.</p>
+        </div>
+        <div>
+            <label for="stress_expected" class="block text-sm font-medium text-gray-700">Saída esperada (contém)</label>
+            <input type="text" name="stress_expected" id="stress_expected" value="{{ stress.get('expected_output_contains', '') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                   placeholder="9592">
+        </div>
+    </div>
+</div>
+
+{# === Section 6: Helgrind === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <div class="flex items-center gap-2 mb-4">
+        <input type="checkbox" name="helgrind_enabled" id="helgrind_enabled" value="true"
+               {% if grading_config.get('helgrind', {}).get('enabled') %}checked{% endif %}
+               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+               onchange="document.getElementById('helgrind-fields').classList.toggle('hidden', !this.checked)">
+        <label for="helgrind_enabled" class="text-lg font-semibold text-gray-900">Helgrind</label>
+        <span class="text-xs text-gray-400">Detecta data races com valgrind --tool=helgrind</span>
+    </div>
+    <div id="helgrind-fields" class="grid grid-cols-1 md:grid-cols-3 gap-4 {% if not grading_config.get('helgrind', {}).get('enabled') %}hidden{% endif %}">
+        {% set hg = grading_config.get('helgrind', {}) %}
+        <div>
+            <label for="helgrind_args" class="block text-sm font-medium text-gray-700">Argumentos</label>
+            <input type="text" name="helgrind_args" id="helgrind_args" value="{{ hg.get('args', [])|join(' ') }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm font-mono placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                   placeholder="par 1000 2 pipe">
+        </div>
+        <div>
+            <label for="helgrind_timeout" class="block text-sm font-medium text-gray-700">Timeout (s)</label>
+            <input type="number" name="helgrind_timeout" id="helgrind_timeout" min="1" value="{{ hg.get('timeout_sec', 60) }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+        <div>
+            <label for="helgrind_max_errors" class="block text-sm font-medium text-gray-700">Erros tolerados</label>
+            <input type="number" name="helgrind_max_errors" id="helgrind_max_errors" min="0" value="{{ hg.get('max_errors', 0) }}"
+                   class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+            <p class="text-xs text-gray-400 mt-1">0 = nenhum erro permitido.</p>
+        </div>
+    </div>
+</div>
+
+{# === Section 7: LLM === #}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <div class="flex items-center gap-2 mb-4">
+        <input type="checkbox" name="llm_enabled" id="llm_enabled" value="true"
+               {% if llm_config.get('enabled') %}checked{% endif %}
+               class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+               onchange="document.getElementById('llm-fields').classList.toggle('hidden', !this.checked)">
+        <label for="llm_enabled" class="text-lg font-semibold text-gray-900">Análise por LLM</label>
+        <span class="text-xs text-gray-400">Envia o código para o Ollama para feedback qualitativo</span>
+    </div>
+    <div id="llm-fields" class="space-y-4 {% if not llm_config.get('enabled') %}hidden{% endif %}">
+        <div>
+            <label for="llm_rubric" class="block text-sm font-medium text-gray-700">Rubrica</label>
+            <textarea name="llm_rubric" id="llm_rubric" rows="4"
+                      class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                      placeholder="Avalie o código quanto a: (1) uso correto de fork/wait, (2) fechamento de descritores...">{{ llm_config.get('rubric', '') }}</textarea>
+            <p class="text-xs text-gray-400 mt-1">Instrução enviada à LLM sobre como avaliar o código.</p>
+        </div>
+        <div>
+            <label for="llm_context" class="block text-sm font-medium text-gray-700">Contexto</label>
+            <textarea name="llm_context" id="llm_context" rows="2"
+                      class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"
+                      placeholder="Exercício de programação concorrente em C usando processos POSIX...">{{ llm_config.get('context', '') }}</textarea>
+            <p class="text-xs text-gray-400 mt-1">Contexto sobre o exercício para a LLM entender o objetivo.</p>
+        </div>
+    </div>
+</div>
+
+{# === Submit === #}
+<div class="flex justify-end gap-3">
+    <a href="/admin/dashboard" class="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition">Cancelar</a>
+    <button type="submit"
+            class="bg-indigo-600 text-white py-2 px-6 rounded-lg text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-800 transition">
+        {% if assignment %}Salvar{% else %}Criar Trabalho{% endif %}
+    </button>
+</div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Test cases dynamic form
+var existingTests = {{ grading_config.get('tests', [])|tojson }};
+var container = document.getElementById('tests-container');
+var hiddenInput = document.getElementById('tests_json');
+
+function renderTests() {
+    container.innerHTML = '';
+    existingTests.forEach(function(t, i) {
+        var div = document.createElement('div');
+        div.className = 'bg-gray-50 rounded-lg p-4 space-y-3';
+        div.innerHTML = '<div class="flex items-center justify-between">' +
+            '<span class="text-sm font-medium text-gray-700">Teste ' + (i+1) + '</span>' +
+            '<button type="button" onclick="removeTest(' + i + ')" class="text-xs text-red-600 hover:text-red-500 transition">Remover</button>' +
+            '</div>' +
+            '<div class="grid grid-cols-1 md:grid-cols-3 gap-3">' +
+            '<div><label class="block text-xs text-gray-500">Nome</label>' +
+            '<input type="text" value="' + (t.name||'') + '" onchange="updateTest('+i+',\'name\',this.value)" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"></div>' +
+            '<div><label class="block text-xs text-gray-500">Argumentos</label>' +
+            '<input type="text" value="' + (t.args||[]).join(' ') + '" onchange="updateTest('+i+',\'args\',this.value.split(\' \').filter(Boolean))" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition" placeholder="arg1 arg2"></div>' +
+            '<div><label class="block text-xs text-gray-500">Timeout (s)</label>' +
+            '<input type="number" value="' + (t.timeout_sec||10) + '" onchange="updateTest('+i+',\'timeout_sec\',parseInt(this.value))" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"></div>' +
+            '</div>' +
+            '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' +
+            '<div><label class="block text-xs text-gray-500">Saída esperada (contém)</label>' +
+            '<input type="text" value="' + (t.expected_output_contains||'') + '" onchange="updateTest('+i+',\'expected_output_contains\',this.value)" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm font-mono focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition" placeholder="primes=168"></div>' +
+            '<div><label class="block text-xs text-gray-500">Pontos</label>' +
+            '<input type="number" step="0.5" value="' + (t.points||1) + '" onchange="updateTest('+i+',\'points\',parseFloat(this.value))" class="mt-1 block w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition"></div>' +
+            '</div>';
+        container.appendChild(div);
+    });
+    syncTests();
+}
+
+function addTest() {
+    existingTests.push({name:'Teste '+(existingTests.length+1), args:[], timeout_sec:10, expected_output_contains:'', points:1.0});
+    renderTests();
+}
+
+function removeTest(i) {
+    existingTests.splice(i, 1);
+    renderTests();
+}
+
+function updateTest(i, field, value) {
+    existingTests[i][field] = value;
+    syncTests();
+}
+
+function syncTests() {
+    hiddenInput.value = JSON.stringify(existingTests);
+}
+
+document.getElementById('add-test-btn').addEventListener('click', addTest);
+renderTests();
+</script>
+{% endblock %}

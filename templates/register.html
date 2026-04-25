@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Cadastro — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center">
+    <div class="w-full max-w-sm">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-900">Criar Conta</h1>
+            <p class="text-sm text-gray-500 mt-1">LPII AutoGrader — UFPB</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6">
+            {% if error %}
+            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+            <form method="post" action="/register" class="space-y-4">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Nome completo</label>
+                    <input type="text" name="name" id="name" required value="{{ name|default('') }}" autocomplete="name"
+                           class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" name="email" id="email" required value="{{ email|default('') }}" autocomplete="email"
+                           class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                </div>
+                <div>
+                    <label for="matricula" class="block text-sm font-medium text-gray-700">Matrícula <span class="text-gray-400 font-normal">(opcional)</span></label>
+                    <input type="text" name="matricula" id="matricula" value="{{ matricula|default('') }}"
+                           class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" name="password" id="password" required minlength="6" autocomplete="new-password"
+                           class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                </div>
+                <div>
+                    <label for="password_confirm" class="block text-sm font-medium text-gray-700">Confirmar senha</label>
+                    <input type="password" name="password_confirm" id="password_confirm" required minlength="6" autocomplete="new-password"
+                           class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                </div>
+                <button type="submit"
+                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+                    Cadastrar
+                </button>
+            </form>
+            <p class="mt-4 text-center text-sm text-gray-500">
+                Já tem conta? <a href="/login" class="font-medium text-indigo-600 hover:text-indigo-500">Entrar</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

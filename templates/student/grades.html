@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Minhas Notas — LPII AutoGrader{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900">Minhas Notas</h1>
+</div>
+
+{% if not grades_data %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-8 text-center">
+    <p class="text-gray-500">Nenhum trabalho disponível ainda.</p>
+</div>
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50/50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trabalho</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nota</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for item in grades_data %}
+                <tr class="hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-3 text-sm text-gray-900 font-medium">{{ item.assignment.title }}</td>
+                    <td class="px-6 py-3 text-sm text-gray-500">{{ item.assignment.module or '—' }}</td>
+                    <td class="px-6 py-3 text-sm">
+                        {% if not item.submission %}
+                        <span class="text-gray-400">Não submetido</span>
+                        {% elif item.grade %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">Publicada</span>
+                        {% elif item.submission.status == 'done' %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700">Aguardando</span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700">Processando</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-3 text-sm font-semibold">
+                        {% if item.grade %}
+                        <span class="{% if item.grade.score_final >= item.assignment.max_score * 0.6 %}text-green-700{% else %}text-red-700{% endif %}">
+                            {{ "%.1f"|format(item.grade.score_final) }} / {{ item.assignment.max_score }}
+                        </span>
+                        {% else %}
+                        <span class="text-gray-400">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -48,9 +48,9 @@
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50/50">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">Aluno</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 z-10">Aluno</th>
                     {% for a in assignments %}
-                    <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                    <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                         <a href="/admin/assignments/{{ a.id }}" class="hover:text-indigo-600 transition">
                             {{ a.title[:20] }}{% if a.title|length > 20 %}...{% endif %}
                         </a>

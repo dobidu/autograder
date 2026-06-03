@@ -96,7 +96,7 @@
 <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
     <h2 class="text-lg font-semibold text-gray-900 mb-1">Pesos da avaliação</h2>
     <p class="text-xs text-gray-400 mb-4">A nota final é calculada pela média ponderada destes critérios, normalizada para a nota máxima.</p>
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {% for field, label, default in [
             ('compile_weight', 'Compilação', 1.0),
             ('tests_weight', 'Testes', 6.0),

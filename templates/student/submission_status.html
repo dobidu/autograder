@@ -62,7 +62,7 @@
 
         {# Compilation #}
         <div class="mb-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Compilação</h3>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Compilação</h3>
             {% if grade.compile_ok %}
             <p class="text-sm text-green-700">Compilou com sucesso</p>
             {% elif grade.compile_ok is not none %}
@@ -76,7 +76,7 @@
         {# Test results #}
         {% if grade.test_results %}
         <div class="mb-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Testes funcionais</h3>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Testes funcionais</h3>
             <div class="space-y-1.5">
                 {% for t in grade.test_results|from_json if grade.test_results %}
                 <div class="flex items-center justify-between text-sm px-3 py-2 rounded-lg transition-colors {% if t.passed %}bg-green-50{% else %}bg-red-50{% endif %}">
@@ -98,7 +98,7 @@
         {# Stress results #}
         {% if grade.stress_results %}
         <div class="mb-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Stress test</h3>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Stress test</h3>
             {% set stress = grade.stress_results|from_json if grade.stress_results else {} %}
             <p class="text-sm {% if stress.get('failed', 0) == 0 %}text-green-700{% else %}text-red-700{% endif %}">
                 {{ stress.get('passed', 0) }}/{{ stress.get('runs', 0) }} execuções consistentes
@@ -109,7 +109,7 @@
         {# Helgrind #}
         {% if grade.helgrind_ok is not none %}
         <div class="mb-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Helgrind (data races)</h3>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Helgrind (data races)</h3>
             {% if grade.helgrind_ok %}
             <p class="text-sm text-green-700">Nenhum erro de concorrência detectado</p>
             {% else %}
@@ -124,7 +124,7 @@
         {# LLM Feedback #}
         {% if grade.is_published and grade.llm_feedback %}
         <div class="mb-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Feedback da LLM</h3>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Feedback da LLM</h3>
             <div class="prose prose-sm max-w-none bg-gray-50 p-4 rounded-xl">
                 {{ grade.llm_feedback|markdown|safe }}
             </div>
@@ -134,7 +134,7 @@
         {# Professor notes #}
         {% if grade.is_published and grade.professor_notes %}
         <div class="mb-5">
-            <h3 class="text-sm font-semibold text-gray-700 mb-2">Comentários do professor</h3>
+            <h2 class="text-sm font-semibold text-gray-700 mb-2">Comentários do professor</h3>
             <div class="bg-indigo-50 p-4 rounded-xl text-sm text-indigo-900">
                 {{ grade.professor_notes }}
             </div>

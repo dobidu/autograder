@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Submeter para Aluno — {{ assignment.title }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/admin/assignments/{{ assignment.id }}" class="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-500 transition">&larr; Voltar ao trabalho</a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 mb-6">
+    <h1 class="text-xl font-bold text-gray-900 mb-1">Submeter em nome de aluno</h1>
+    <p class="text-sm text-gray-500">{{ assignment.title }}</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-200/60 p-6 max-w-lg">
+
+    {% if error %}
+    <div class="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="/admin/assignments/{{ assignment.id }}/submit-for-student" class="space-y-5">
+
+        <div>
+            <label for="student_id" class="block text-sm font-medium text-gray-700 mb-1">Aluno</label>
+            <select id="student_id" name="student_id" required
+                    class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+                <option value="">Selecione o aluno...</option>
+                {% for s in students %}
+                <option value="{{ s.id }}"
+                    {% if selected_student_id and selected_student_id == s.id %}selected{% endif %}>
+                    {{ s.name }}{% if s.matricula %} — {{ s.matricula }}{% endif %}
+                </option>
+                {% endfor %}
+            </select>
+            {% if not students %}
+            <p class="mt-1 text-xs text-amber-600">Nenhum aluno cadastrado ainda. <a href="/admin/students/new" class="underline">Cadastrar aluno</a></p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="github_url" class="block text-sm font-medium text-gray-700 mb-1">URL do repositório GitHub</label>
+            <input type="url" id="github_url" name="github_url" required
+                   value="{{ github_url or '' }}"
+                   placeholder="https://github.com/usuario/repositorio"
+                   class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition">
+        </div>
+
+        <button type="submit"
+                class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+            Enfileirar para correção
+        </button>
+
+    </form>
+</div>
+{% endblock %}

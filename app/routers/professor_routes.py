@@ -12,6 +12,7 @@ from app.auth import require_professor
 from app.database import get_db
 from app.flash import set_flash
 from app.models import Assignment, GradeResult, Submission, User
+from app.services.submission_service import create_submission_from_github
 from app.templating import render
 
 router = APIRouter(prefix="/admin")
@@ -655,6 +656,79 @@ def settings_page(
         "pending_count": pending_count,
         "processing_count": processing_count,
     })
+
+
+@router.get("/assignments/{assignment_id}/submit-for-student", response_class=HTMLResponse)
+def submit_for_student_form(
+    assignment_id: int,
+    request: Request,
+    user: User = Depends(require_professor),
+    db: Session = Depends(get_db),
+):
+    assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+    if not assignment:
+        return RedirectResponse("/admin/dashboard", status_code=303)
+
+    students = (
+        db.query(User)
+        .filter(User.role == "student", User.is_active == True)
+        .order_by(User.name)
+        .all()
+    )
+    return render("professor/submit_for_student.html", request, {
+        "user": user,
+        "assignment": assignment,
+        "students": students,
+        "error": None,
+    })
+
+
+@router.post("/assignments/{assignment_id}/submit-for-student")
+def submit_for_student(
+    assignment_id: int,
+    request: Request,
+    student_id: int = Form(...),
+    github_url: str = Form(""),
+    user: User = Depends(require_professor),
+    db: Session = Depends(get_db),
+):
+    assignment = db.query(Assignment).filter(Assignment.id == assignment_id).first()
+    if not assignment:
+        return RedirectResponse("/admin/dashboard", status_code=303)
+
+    students = (
+        db.query(User)
+        .filter(User.role == "student", User.is_active == True)
+        .order_by(User.name)
+        .all()
+    )
+
+    def render_error(msg):
+        return render("professor/submit_for_student.html", request, {
+            "user": user,
+            "assignment": assignment,
+            "students": students,
+            "error": msg,
+            "selected_student_id": student_id,
+            "github_url": github_url,
+        })
+
+    student = db.query(User).filter(User.id == student_id, User.role == "student").first()
+    if not student:
+        return render_error("Aluno não encontrado.")
+
+    if not github_url.strip():
+        return render_error("Informe a URL do repositório GitHub.")
+
+    submission, err = create_submission_from_github(db, assignment, student_id, github_url.strip())
+    if err:
+        return render_error(err)
+
+    response = RedirectResponse(
+        f"/admin/assignments/{assignment_id}", status_code=303
+    )
+    set_flash(response, f"Submissão de {student.name} (v{submission.version}) enfileirada para correção.")
+    return response
 
 
 def _build_grading_config(

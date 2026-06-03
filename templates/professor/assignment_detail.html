@@ -29,8 +29,12 @@
 </div>
 
 {# Bulk actions #}
-{% if all_count > 0 %}
 <div class="flex flex-wrap items-center gap-2 mb-4">
+    <a href="/admin/assignments/{{ assignment.id }}/submit-for-student"
+       class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
+        + Submeter para aluno
+    </a>
+{% if all_count > 0 %}
     <form method="post" action="/admin/assignments/{{ assignment.id }}/publish-all"
           onsubmit="return confirm('Publicar todas as notas pendentes? Os alunos poderão ver suas notas imediatamente.')">
         <button type="submit" class="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition">
@@ -47,8 +51,8 @@
        class="bg-white text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition">
         Exportar CSV
     </a>
-</div>
 {% endif %}
+</div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden">
     <div class="px-6 py-4 border-b border-gray-100">

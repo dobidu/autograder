@@ -45,9 +45,14 @@ None.
 ## Session Continuity
 
 Last session: 2026-06-03
-Stopped at: Phase 1 complete — system deploy-ready
-Next action: Copy .env.example → .env, set SECRET_KEY, run ./start.sh, create professor account
-Resume file: .paul/phases/01-deploy-ready/01-01-SUMMARY.md
+Stopped at: Session paused — all work committed and pushed to GitHub
+Next action: cp .env.example .env → set SECRET_KEY + SANDBOX_MODE=none → ./start.sh → create professor account
+Resume file: .paul/HANDOFF-2026-06-03.md
+Resume context:
+- Stack is FastAPI (not Django), SQLite, HTMX — Jinja2 templates
+- start.sh launches web + worker; .env.example has all vars
+- Professor can submit GitHub repos on behalf of students via assignment detail page
+- Assignment must have GitHub enabled; repos must be public (or GITHUB_TOKEN set)
 
 ---
 *STATE.md — Updated after every significant action*
